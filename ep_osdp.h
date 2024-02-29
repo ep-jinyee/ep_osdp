@@ -84,7 +84,7 @@
 
 #define OSDP_PACKET_SIZE_MAX 200 //Refer to 2.6 of OSDP manual
 #define OSDP_INTERCHARACTER_TIMEOUT 20 //in ms. Refer to 2.8 of OSDP manual
-#define OSDP_PCKTDESCRPTR_BUF_NUM 1  //Number of OSDP packet descriptor buffer
+#define OSDP_PCKTDESCRPTR_BUF_NUM 1  //Number of OSDP buffer
 #define OSDP_PD_ADDR_1STREADER 0x00 //First reader OSDP PD address
 #define OSDP_PD_ADDR_2NDREADER 0x01 //Second reader OSDP PD address
 #define OSDP_BROADCAST_ADDR 0x7F
@@ -173,7 +173,7 @@ typedef union _EPS_OSDP_CTRL {
         U8 cksum : 1;
         U8 scb : 1;
         U8 na : 3;
-        U8 mFulti : 1;
+        U8 multi : 1;
     };
     U8 ctrlByte;
 } EPS_OSDP_CTRL;
@@ -189,7 +189,7 @@ typedef union _EPS_OSDP_CTRL {
 typedef struct _EPS_OSDP_PACKET {
     EPS_OSDP_HEADER header;
     EPS_OSDP_CTRL ctrl;
-    U8 payload[OSDP_PACKET_SIZE_MAX - 4];
+    U8 payload[OSDP_PACKET_SIZE_MAX - 5];
     bool valid;
     bool locked;
     U8 prevSqn[2];
@@ -198,11 +198,22 @@ typedef struct _EPS_OSDP_PACKET {
     UL32 dataBlkLen;
 } EPS_OSDP_PACKET;
 
+//Refer to the "4.11 osdp_BUZ" command
+
+typedef struct _EPS_BUZCTRL {
+    U8 ReaderNum;
+    U8 ToneCode;
+    U8 OnTime; //in units of 100ms
+    U8 OffTime; //in units of 100ms
+    U8 Count;
+} EPS_BUZCTRL;
+
 void ep_osdpInit(void);
 void ep_osdpPacketConsume(void);
 void ep_osdpSend(U8* buff, UL32 len);
 void ep_osdpProcess(EPS_OSDP_PACKET*);
-C8 ep_osdpPktBuff(U8, EPS_OSDP_PACKET*);
+S8 ep_osdpPktBuff(U8);
+void osdpLEDHandler(void* p1stRecAddress, U8 ReaderNo, UL32 RecNumber);
 
 #endif	/* XC_HEADER_TEMPLATE_H */
 
